@@ -13,7 +13,15 @@
             <div class="recommend-list">
                 <h1 class="list-title">热门歌单推荐</h1>
                 <ul>
-                    
+                    <li v-for="item in discList" class="item" :key="item.creator.qq">
+                        <div class="icon">
+                            <img :src="item.imgurl" alt  width="100%"/>
+                        </div>
+                        <div class="text">
+                            <p class="name">{{item.creator.name}}</p>
+                            <p class="desc">{{item.dissname}}</p>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -85,6 +93,35 @@ export default {
             text-align: center;
             font-size: @font-size-medium;
             color: @color-theme;
+        }
+        .item {
+            display: flex;
+            box-sizing: border-box;
+            align-items: center;
+            padding: 0 20px 20px 20px;
+            .icon {
+                flex: 0 0 60px;
+                width: 60px;
+                padding-right: 20px;
+            }
+
+            .text {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                flex: 1;
+                line-height: 20px;
+                overflow: hidden;
+                font-size: @font-size-medium;
+                .name {
+                    margin-bottom: 10px;
+                    color: @color-text;
+                }
+
+                .desc {
+                    color: @color-text-d;
+                }
+            }
         }
     }
 }
