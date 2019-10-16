@@ -12,3 +12,5 @@ export const options = {
 }
 
 export const ERR_OK = 0
+
+export const SUCCESS_OK = 200
