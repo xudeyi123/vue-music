@@ -27,7 +27,7 @@
         display :flex;
         height :44px;
         line-height:44px;
-        font-size : @font-size-medium
+        font-size : @font-size-medium;
     }
     
     .tab-item {
