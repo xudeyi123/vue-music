@@ -18,11 +18,14 @@
                     <h1 class="title" v-html="currentSong.name"></h1>
                     <h2 class="subtitle" v-html="currentSong.singer"></h2>
                 </div>
-                <div class="middle" ref="cdWrapper"
-                    @touchstart.prevent="middleTouchStart" 
-                    @touchmove.prevent="middleTouchMove" 
-                    @touchend="middleTouchEnd">
+                <div
+                    class="middle"
+                    ref="cdWrapper"
+                    @touchstart.prevent="middleTouchStart"
+                    @touchmove.prevent="middleTouchMove"
+                    @touchend="middleTouchEnd"
                 >
+                    >
                     <div class="middle-l" ref="middleL">
                         <div class="cd-wrapper">
                             <div class="cd">
@@ -45,6 +48,7 @@
                                     class="text"
                                     v-for="(line, index) in currentLyric.lines"
                                     :class="{'current':currentLineNum === index}"
+                                    :key="index"
                                 >{{line.txt}}</p>
                             </div>
                         </div>
@@ -63,8 +67,8 @@
                         <span class="time time-r">{{format(currentSong.duration)}}</span>
                     </div>
                     <div class="operators">
-                        <div class="icon i-left">
-                            <i class="icon-sequence"></i>
+                        <div class="icon i-left" @click="changeMode">
+                            <i :class="iconMode"></i>
                         </div>
                         <div class="icon i-left" @click="prev">
                             <i class="icon-prev"></i>
@@ -120,6 +124,7 @@ import progressCircle from "../../base/progress-circle/progress-circle";
 import Scroll from "../../base/scroll/scroll";
 import animations from "create-keyframe-animation";
 import { prefixStyle } from "../../common/js/dom";
+import { playMode } from "../../common/js/config";
 
 import Lyric from "lyric-parser";
 const transform = prefixStyle("transform");
@@ -137,8 +142,8 @@ export default {
             currentShow: "cd"
         };
     },
-    created(){
-        this.touch ={}
+    created() {
+        this.touch = {};
     },
     components: {
         ProgressBar,
@@ -146,6 +151,10 @@ export default {
         Scroll
     },
     methods: {
+        changeMode() {
+            const mode = (this.mode + 1) % 3;
+            this.setMode(mode);
+        },
         getLyric() {
             this.currentSong
                 .getLyric()
@@ -164,76 +173,82 @@ export default {
                     this.currentLineNum = 0;
                 });
         },
-        hanleLyric({lineNum,txt}){
-            this.currentLineNum = lineNum
-            if(lineNum>5){
-                let lineEl = this.$refs.lyricLine[lineNum-5]
-                this.$refs.lyricList.scrollToElement(lineEl,1000)
-            }else{
-                this.$refs.lyricList.scrollTo(0,0,1000)
+        hanleLyric({ lineNum, txt }) {
+            this.currentLineNum = lineNum;
+            if (lineNum > 5) {
+                let lineEl = this.$refs.lyricLine[lineNum - 5];
+                this.$refs.lyricList.scrollToElement(lineEl, 1000);
+            } else {
+                this.$refs.lyricList.scrollTo(0, 0, 1000);
             }
-            this.playingLyric = txt
+            this.playingLyric = txt;
         },
-        middleTouchStart(e){
-            this.touch.init = true
+        middleTouchStart(e) {
+            this.touch.init = true;
             //判断是否为一次移动
-            this.touch.moved = false
-            const touch = e.touches[0]
-            this.touch.startX = touch.pageX
-            this.touch.startY = touch.pageY
+            this.touch.moved = false;
+            const touch = e.touches[0];
+            this.touch.startX = touch.pageX;
+            this.touch.startY = touch.pageY;
         },
-        middleTouchMove(e){
-            if(!this.touch.init){
-                return
+        middleTouchMove(e) {
+            if (!this.touch.init) {
+                return;
             }
-            const touch = e.touches[0]
-            const deltaX = touch.pageX - this.touch.startX
-            const deltaY = touch.pageY - this.touch.startY
-            if(Math.abs(deltaY)>Math.abs(deltaX)){ //如果上下滑动大于左右滑动 就不用管
-                return
+            const touch = e.touches[0];
+            const deltaX = touch.pageX - this.touch.startX;
+            const deltaY = touch.pageY - this.touch.startY;
+            if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                //如果上下滑动大于左右滑动 就不用管
+                return;
             }
-            if(!this.touch.moved){
-                this.touch.moved = true
+            if (!this.touch.moved) {
+                this.touch.moved = true;
             }
-            const left =  this.currentShow === 'cd' ? 0 : -window.innerWidth
-            // console.warn(deltaX,deltaY)
-            const offsetWidth = Math.min(0,Math.max(-window.innerWidth,left + deltaX))
-            this.touch.precent = Math.abs(offsetWidth/window.innerWidth)
-            this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
-            this.$refs.lyricList.$el.style[transitionDuration] = 0
-            this.$refs.middleL.style.opacity = 1 - this.touch.precent
-            this.$refs.middleL.style[transitionDuration] = 0
+            const left = this.currentShow === "cd" ? 0 : -window.innerWidth;
+            const offsetWidth = Math.min(
+                0,
+                Math.max(-window.innerWidth, left + deltaX)
+            );
+            this.touch.precent = Math.abs(offsetWidth / window.innerWidth);
+            this.$refs.lyricList.$el.style[
+                transform
+            ] = `translate3d(${offsetWidth}px,0,0)`;
+            this.$refs.lyricList.$el.style[transitionDuration] = 0;
+            this.$refs.middleL.style.opacity = 1 - this.touch.precent;
+            this.$refs.middleL.style[transitionDuration] = 0;
         },
-        middleTouchEnd(e){
-            if(!this.touch.moved){
-                return
+        middleTouchEnd(e) {
+            if (!this.touch.moved) {
+                return;
             }
-            let offsetWidth,
-                opacity
-            if(this.currentShow === 'cd'){
-                if(this.touch.precent>0.1){
-                    offsetWidth = -window.innerWidth
-                    opacity = 0
-                }else{
-                    offsetWidth = 0
-                    opacity = 1
+            let offsetWidth, opacity;
+            if (this.currentShow === "cd") {
+                if (this.touch.precent > 0.1) {
+                    offsetWidth = -window.innerWidth;
+                    opacity = 0;
+                } else {
+                    offsetWidth = 0;
+                    opacity = 1;
                 }
-            }else{
-                if(this.touch.precent<0.9){
-                    offsetWidth = 0
-                    opacity = 1
-                }else{
-                    offsetWidth = -window.innerWidth
-                    opacity = 0
+            } else {
+                if (this.touch.precent < 0.9) {
+                    offsetWidth = 0;
+                    opacity = 1;
+                } else {
+                    offsetWidth = -window.innerWidth;
+                    opacity = 0;
                 }
             }
 
-            const times = 300
-            this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
-            this.$refs.lyricList.$el.style[transitionDuration] = `${times}ms`
-            this.$refs.middleL.style.opacity = opacity
-            this.$refs.middleL.style[transitionDuration] = `${times}ms`
-            this.touch.moved = false
+            const times = 300;
+            this.$refs.lyricList.$el.style[
+                transform
+            ] = `translate3d(${offsetWidth}px,0,0)`;
+            this.$refs.lyricList.$el.style[transitionDuration] = `${times}ms`;
+            this.$refs.middleL.style.opacity = opacity;
+            this.$refs.middleL.style[transitionDuration] = `${times}ms`;
+            this.touch.moved = false;
         },
         back() {
             this.setFullScreen(false);
@@ -256,7 +271,7 @@ export default {
             let index = +this.currentIndex - 1;
             this.setCurrentIndex(index);
             if (!this.playing) {
-              this.togglePlaying()
+                this.togglePlaying();
             }
             this.songReady = false;
         },
@@ -281,13 +296,13 @@ export default {
         },
         onProgressBarChange(percent) {
             this.$refs.audio.currentTime = this.currentSong.duration * percent;
-            const currentTime = this.currentSong.duration *percent;
-            if(!this.playing){
-                this.togglePlay()
+            const currentTime = this.currentSong.duration * percent;
+            if (!this.playing) {
+                this.togglePlay();
             }
-            if(this.currentLyric) {
-            this.currentLyric.seek(currentTime * 1000)
-          }
+            if (this.currentLyric) {
+                this.currentLyric.seek(currentTime * 1000);
+            }
         },
         format(interval) {
             interval = interval | 0;
@@ -368,10 +383,20 @@ export default {
         ...mapMutations({
             setFullScreen: "SET_FULLSCREEN",
             setPlayState: "SET_PLAYING_STATE",
-            setCurrentIndex: "SET_CURRENTINDEX"
+            setCurrentIndex: "SET_CURRENTINDEX",
+            setMode: "SET_MODE"
         })
     },
     computed: {
+        iconMode() {
+            return this.mode === playMode.sequence
+                ? "icon-sequence"
+                : this.mode === playMode.loop
+                ? "icon-loop"
+                : this.mode === playMode.random
+                ? "icon-random"
+                : "";
+        },
         playIcon() {
             return this.playing ? "icon-pause" : "icon-play";
         },
@@ -386,6 +411,7 @@ export default {
             "playList",
             "currentSong",
             "playing",
+            "mode",
             "currentIndex"
         ])
     },
