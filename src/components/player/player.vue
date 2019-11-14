@@ -70,14 +70,14 @@
                         <div class="icon i-left" @click="changeMode">
                             <i :class="iconMode"></i>
                         </div>
-                        <div class="icon i-left" @click="prev">
-                            <i class="icon-prev"></i>
+                        <div class="icon i-left" :class="disableCls">
+                            <i class="icon-prev"  @click="prev"></i>
                         </div>
-                        <div class="icon i-center" @click="togglePlay">
-                            <i :class="playIcon"></i>
+                        <div class="icon i-center" :class="disableCls">
+                            <i :class="playIcon"  @click="togglePlay"></i>
                         </div>
-                        <div class="icon i-right" @click="next">
-                            <i class="icon-next"></i>
+                        <div class="icon i-right" :class="disableCls">
+                            <i class="icon-next" @click="next"></i>
                         </div>
                         <div class="icon i-right">
                             <i class="icon icon-not-favorite"></i>
@@ -102,10 +102,11 @@
                     <i @click.stop="togglePlay" class="icon-mini" :class="miniIcon"></i>
                 </progress-circle>
             </div>
-            <div class="control">
+            <div class="control" @click.stop="showPlayList">
                 <i class="icon-playlist"></i>
             </div>
         </div>
+        <play-list ref="playlist"></play-list>
         <audio
             ref="audio"
             :src="currentSong.url"
@@ -122,6 +123,7 @@ import { mapGetters, mapMutations } from "vuex";
 import ProgressBar from "../../base/progress-bar/progress-bar";
 import progressCircle from "../../base/progress-circle/progress-circle";
 import Scroll from "../../base/scroll/scroll";
+import PlayList from "../playlist/playlist";
 import animations from "create-keyframe-animation";
 import { prefixStyle } from "../../common/js/dom";
 import { playMode } from "../../common/js/config";
@@ -148,9 +150,13 @@ export default {
     components: {
         ProgressBar,
         progressCircle,
-        Scroll
+        Scroll,
+        PlayList
     },
     methods: {
+        showPlayList(){
+            this.$refs.playlist.show()
+        },
         changeMode() {
             const mode = (this.mode + 1) % 3;
             this.setMode(mode);
@@ -268,7 +274,14 @@ export default {
             if (!this.songReady) {
                 return;
             }
-            let index = +this.currentIndex - 1;
+            if(this.mode === playMode.loop){
+                this.loop()
+                return
+            }
+            
+            // let index = this.currentIndex === 0 ? this.playlist.length : this.currentIndex - 1;
+            let index = this.currentIndex - 1;
+            
             this.setCurrentIndex(index);
             if (!this.playing) {
                 this.togglePlaying();
@@ -279,7 +292,14 @@ export default {
             if (!this.songReady) {
                 return;
             }
-            this.setCurrentIndex(this.currentIndex + 1);
+            if(this.mode === playMode.loop){
+                this.loop()
+                return
+            }
+            // console.warn(this.playlist)
+            // let index = this.currentIndex === this.playlist.length ? 0 : this.currentIndex + 1;
+            let index = this.currentIndex + 1;
+            this.setCurrentIndex(index);
             this.songReady = false;
         },
         ready() {
@@ -405,6 +425,9 @@ export default {
         },
         miniIcon() {
             return this.playing ? "icon-pause-mini" : "icon-play-mini";
+        },
+        disableCls() {
+            return this.songReady ? '' : 'disable'
         },
         ...mapGetters([
             "fullScreen",
