@@ -1,5 +1,5 @@
 <template>
-    <div class="recommend">
+    <div class="recommend" ref="recommend">
         <scroll ref="scroll" class="recommend-content" :data="discList">
             <div>
                 <div v-if="recommends.length" class="slider-wrapper" style="{height:'150px'}">
@@ -14,7 +14,7 @@
                 <div class="recommend-list">
                     <h1 class="list-title">热门歌单推荐</h1>
                     <ul>
-                        <li v-for="(item,index) in discList" class="item" :key="index">
+                        <li v-for="(item,index) in discList" class="item" :key="index" @click="selectItem(item)">
                             <div class="icon">
                                 <img v-lazy="item.imgurl" alt width="100%" />
                             </div>
@@ -30,6 +30,9 @@
                 </div>
             </div>
         </scroll>
+        <keep-alive>
+            <router-view></router-view>
+        </keep-alive>
     </div>
 </template>
 
@@ -39,8 +42,11 @@ import { ERR_OK, SUCCESS_OK } from "../../api/config";
 import Slider from "../../base/slider/slider";
 import Scroll from "../../base/scroll/scroll";
 import Loading from "../../base/loading/loading";
+import {playlistMixin} from '../../common/js/mixin';
+import {mapMutations} from 'vuex'
 
 export default {
+    mixins:[playlistMixin],
     data() {
         return {
             recommends: [],
@@ -57,6 +63,17 @@ export default {
         Loading
     },
     methods: {
+        selectItem(disc){
+            this.$router.push({
+                path:`recommend/${disc.dissid}`
+            })
+            this.setDisc(disc)
+        },
+        handlePlaylist(playList){
+            const bottom = playList.length>0 ? "60" : ""
+            this.$refs.recommend.style.bottom = bottom  + 'px'
+            this.$refs.scroll.refresh()
+        },
         _getRecommend() {
             getRecommend().then(res => {
                 if (res.code === ERR_OK) {
@@ -78,7 +95,10 @@ export default {
                     this.$refs.scroll.refresh();
                 }, 20);
             }
-        }
+        },
+        ...mapMutations({
+        setDisc: 'SET_DISC'
+      })
     }
 };
 </script>

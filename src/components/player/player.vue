@@ -296,7 +296,6 @@ export default {
                 this.loop()
                 return
             }
-            // console.warn(this.playlist)
             // let index = this.currentIndex === this.playlist.length ? 0 : this.currentIndex + 1;
             let index = this.currentIndex + 1;
             this.setCurrentIndex(index);

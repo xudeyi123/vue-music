@@ -1,13 +1,13 @@
 <template>
     <transition name="slide">
-        <music-list :title="title" :bgImage="bgImage" :songs="songs"></music-list>
+        <music-list :songs="songs" :title="title" :bgImage="bgImage"></music-list>
     </transition>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 import MusicList from "../music-list/music-list";
-import { getSingerDetail } from "../../api/singer";
+import { mapGetters } from "vuex";
+import { getSongList } from "../../api/recommend";
 import { ERR_OK } from "../../api/config";
 import {
     createSong,
@@ -20,43 +20,47 @@ export default {
             songs: []
         };
     },
-    computed: {
-        title() {
-            return this.singer.name;
-        },
-        bgImage() {
-            return this.singer.avatar;
-        },
-        ...mapGetters(["singer"])
-    },
     components: {
         MusicList
     },
-    created() {
-        this._getDetail();
+    computed: {
+        title(){
+            return this.disc.dissname
+        },
+        bgImage(){
+            return this.disc.imgurl
+        },
+        ...mapGetters([
+        'disc'
+      ])
     },
-    methods: {
-        _getDetail() {
-            if (!this.singer.id) {
-                this.$router.push("/singer");
+    created() {
+        this._getSongList()
+    },
+    methods:{
+        
+        _getSongList(){
+            if(!this.disc.dissid){
+                this.$router.push({
+                    path:'/recommend'
+                })
             }
-            getSingerDetail(this.singer.id).then(res => {
+            getSongList(this.disc.dissid).then(res=>{
                 if (res.code === ERR_OK) {
-                    processSongsUrl(this._normalizeSongs(res.data.list)).then(
+                    
+                    processSongsUrl(this._normalizeSongs(res.cdlist[0].songlist)).then(
                         songs => {
                             this.songs = songs;
                         }
                     );
                 }
-            });
+            })
         },
         _normalizeSongs(list) {
             let ret = [];
             list.forEach(item => {
-                // console.log(item)
-                const { musicData } = item;
-                if (isValidMusic(musicData)) {
-                    ret.push(createSong(musicData));
+                if (isValidMusic(item)) {
+                    ret.push(createSong(item));
                 }
             });
             return ret;

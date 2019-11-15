@@ -42,6 +42,19 @@ module.exports = {
                     host: 'c.y.qq.com'
                 }
             },
+            "/api/getCdInfo": {
+                //target代表源地址
+                target: "https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg",
+                secure: false, // 如果是https接口，需要配置这个参数
+                changeOrigin: true, //允许跨域
+                pathRewrite: {
+                    "^/api/getCdInfo": ""
+                },
+                headers: {
+                    referer: 'https://c.y.qq.com/',
+                    host: 'c.y.qq.com'
+                }
+            },
         }
     }
 };

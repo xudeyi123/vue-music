@@ -32,11 +32,15 @@
 import Scroll from "../../base/scroll/scroll";
 import SongList from "../../base/song-list/song-list";
 import { prefixStyle } from "../../common/js/dom";
+import {mapActions} from 'vuex';
+import {playlistMixin} from '../../common/js/mixin';
 const RESERVED_HEIGHT = 40;
 const transform = prefixStyle("transform");
 const backdrop = prefixStyle("backdrop-filter");
-import {mapActions} from 'vuex';
+
+
 export default {
+    mixins:[playlistMixin],
     components: {
         Scroll,
         SongList
@@ -70,6 +74,11 @@ export default {
         this.$refs.list.$el.style.top = `${this.imageHeight}px`;
     },
     methods: {
+        handlePlaylist(playList){
+            const bottom = playList.length>0 ? "60" : ""
+            this.$refs.list.$el.style.bottom = bottom + 'px'
+            this.$refs.list.refresh()
+        },
         back() {
             this.$router.back();
         },
